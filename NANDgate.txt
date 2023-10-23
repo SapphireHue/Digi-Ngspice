@@ -1,0 +1,43 @@
+*CMOS NAND Gate
+.include "../Models/MOSIS.txt"
+.param vdd=1.8
+Vsupply vdd 0 vdd
+.global vdd
+
+Cload 0 nandOut 0.2pf
+
+VVinA inA 0  pulse(0 1.8 0.95n 0.1n 0.1n 3.9n 8n)
+VVinB inB 0  pulse(0 1.8 2.95n 0.1n 0.1n 7.9n 16n)
+
+.subckt inv in out wp=2.5u wn=1u
+Mp0 out in vdd vdd ibm0p13pmos W='wp' L=0.13u
+Mn0 out in 0 0 ibm0p13nmos W='wn' L=0.12u
+.ends
+
+.subckt nand inA inB out wp=5u wn=2u
+Mp0 out inA vdd vdd ibm0p13pmos W='wp' L=0.13u
+Mp1 out inB vdd vdd ibm0p13pmos W='wp' L=0.13u
+Mn0 out inA n0 0 ibm0p13nmos W='wn' L=0.12u
+Mn1 n0 inB 0 0 ibm0p13nmos W='wn' L=0.12u
+.ends
+
+*input conditioning
+xinv1 inA 	n0 inv
+xinv2 n0 nandA inv
+xinv3 inB n1 inv
+xinv4 n1 nandB inv
+
+*NAND gate
+xnand nandA nandB nandOut nand wn=3u
+
+.tran 5p 28n 0n 
+.end
+.meas tran tplh_afb1 TRIG V(nandA) val='vdd/2.0' fall=1 targ V(nandOut) val='vdd/2.0' rise=1
+.meas tran tplh_a1bf TRIG V(nandB) val='vdd/2.0' fall=1 targ V(nandOut) val='vdd/2.0' rise=2
+.meas tran tphl_arb1 TRIG V(nandA) val='vdd/2.0' rise=2 targ V(nandOut) val='vdd/2.0' fall=2
+.meas tran tphl_a1br TRIG V(nandB) val='vdd/2.0' rise=1 targ V(nandOut) val='vdd/2.0' fall=1
+
+.control
+run 
+plot v(nandA) v(nandB) v(nandOut) 
+.endc 

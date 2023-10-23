@@ -1,0 +1,43 @@
+*CMOS NOR Gate
+.include "../Models/MOSIS.txt"
+.param vdd=1.8
+Vsupply vdd 0 vdd
+.global vdd
+
+Cload 0 norOut 0.2pf
+
+VVinA inA 0  pulse(0 1.8 0.95n 0.1n 0.1n 3.9n 8n)
+VVinB inB 0  pulse(0 1.8 6.95n 0.1n 0.1n 7.9n 16n)
+
+.subckt inv in out wp=2.5u wn=1u
+Mp0 out in vdd vdd ibm0p13pmos W='wp' L=0.13u
+Mn0 out in 0 0 ibm0p13nmos W='wn' L=0.12u
+.ends
+
+.subckt nor inA inB out wp=5u wn=2u
+Mp0 n0 inB vdd vdd ibm0p13pmos W='wp' L=0.13u
+Mp1 out inA n0 vdd ibm0p13pmos W='wp' L=0.13u
+Mn0 out inA 0 0 ibm0p13nmos W='wn' L=0.12u
+Mn1 out inB 0 0 ibm0p13nmos W='wn' L=0.12u
+.ends
+
+*input conditioning
+xinv1 inA n0 inv
+xinv2 n0 norA inv
+xinv3 inB n1 inv
+xinv4 n1 norB inv
+
+*NOR gate
+xnor norA norB norOut nor wp=8u
+
+.tran 5p 28n 0n 
+.end
+.meas tran tplh_afb0 TRIG V(norA) val='vdd/2.0' fall=1 targ V(norOut) val='vdd/2.0' rise=1
+.meas tran tplh_a0bf TRIG V(norB) val='vdd/2.0' fall=1 targ V(norOut) val='vdd/2.0' rise=2
+.meas tran tphl_arb0 TRIG V(norA) val='vdd/2.0' rise=1 targ V(norOut) val='vdd/2.0' fall=1
+.meas tran tphl_a0br TRIG V(norB) val='vdd/2.0' rise=1 targ V(norOut) val='vdd/2.0' fall=2
+
+.control
+run 
+plot v(norA) v(norB) v(norOut) 
+.endc 

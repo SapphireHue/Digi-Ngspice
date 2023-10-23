@@ -1,0 +1,36 @@
+* Buffer simulation
+.include "../Models/MOSIS.txt"
+
+Vsupply vdd 0 1.8V
+.global vdd
+
+.subckt inv in out wp=1u wn=1u
+Mp0 out in vdd vdd ibm0p13pmos W='wp' L=0.13u
+Mn0 out in 0 0 ibm0p13nmos W='wn' L=0.12u
+.ends
+
+xinv1 n0 n1 inv wp=5.4u wn=2.23u
+CC1 n1 0 100f
+xinv2 n1 n2 inv wp=5.4u wn=2.23u
+CC2 n2 0 100f
+xinv3 n2 n3 inv wp=5.4u wn=2.23u
+CC3 n3 0 100f
+xinv4 n3 n4 inv wp=5.4u wn=2.23u
+CC4 n4 0 100f
+xinv5 n4 n0 inv wp=5.4u wn=2.23u
+CC5 n0 0 100f
+
+.TRAN 2p 9n
+.end
+.control
+run 
+set color0 = white
+set xbrushwidth = 5 
+plot v(n0) v(n1) v(n2) v(n3) v(n4)
+
+meas tran period TRIG V(n0) val=0.9 TD=4n rise=1 TARG V(n0) val=0.9 TD=4n rise=2
+
+meas tran rise TRIG V(n0) val=0.18 TD=4n rise=1 TARG V(n0) val=1.62 TD=4n rise=1
+meas tran fall TRIG V(n0) val=1.62 TD=4n fall=1 TARG V(n0) val=0.18 TD=4n fall=2
+
+.endc
